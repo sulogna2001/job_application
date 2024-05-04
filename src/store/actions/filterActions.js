@@ -1,9 +1,9 @@
 import axios from "axios";
 
 // Action to fetch jobs with API provided
-export const fetchJobs = () => {
+export const fetchFilterOptions = () => {
   return (dispatch) => {
-    dispatch({ type: "FETCH_JOBS_START" });
+    dispatch({ type: "FETCH_FILTER_OPTIONS_START" });
 
     const url = "https://api.weekday.technology/adhoc/getSampleJdJSON";
     const data = JSON.stringify({
@@ -21,16 +21,10 @@ export const fetchJobs = () => {
 
     axios(config)
       .then((response) => {
-        dispatch({ type: "FETCH_JOBS_SUCCESS", payload: response.data });
+        dispatch({ type: "FETCH_FILTER_OPTIONS_SUCCESS", payload: response.data });
       })
       .catch((error) => {
-        dispatch({ type: "FETCH_JOBS_ERROR", payload: error.toString() });
+        dispatch({ type: "FETCH_FILTER_OPTIONS_ERROR", payload: error.toString() });
       });
   };
 };
-
-// Action to set filter
-export const setFilter = (name, value) => ({
-  type: "SET_FILTER",
-  payload: { name, value },
-});

@@ -4,7 +4,7 @@ const initialState = {
     minExperience: null,
     companyName: "",
     location: "",
-    remote: null, // true for remote, false for on-site, null for both
+    remote: null,
     techStack: [],
     role: "",
     minBasePay: null,

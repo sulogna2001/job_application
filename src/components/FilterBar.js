@@ -1,6 +1,9 @@
-import React from "react";
-import { useDispatch } from "react-redux";
-import { setFilter } from "../store/jobActions";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { setFilter } from "../store/actions/jobActions";
+import { fetchJobs } from "../store/actions/jobActions";
+
+import { getFilterOptions } from "../utility/getFilterOptions";
 import {
   Grid,
   TextField,
@@ -11,31 +14,60 @@ import {
 } from "@mui/material";
 const FilterBar = () => {
   const dispatch = useDispatch();
+  const { jobs, loading, error } = useSelector((state) => state.jobs);
+  const [filterOptions, setFilterOptions] = useState({
+    role: [],
+    locations: [],
+    techStacks: [],
+  });
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    dispatch(setFilter(name, value));
-  };
+  const [filteredJobs, setFilteredJobs] = useState([]);
+  useEffect(() => {
+    dispatch(fetchJobs());
+  }, [dispatch]);
 
-  const handleSearch = () => {
-    // Optionally, trigger a new fetch based on filters
-    // dispatch(fetchJobs());
-  };
-  const options = {
-    companies: ["Company A", "Company B", "Company C"],
-    locations: ["Location A", "Location B", "Location C"],
-    techStacks: ["React", "Angular", "Vue"],
-    roles: ["Developer", "Designer", "Manager"],
-    experienceLevels: ["Junior", "Mid", "Senior"],
-    employmentTypes: ["Full-time", "Part-time", "Contract"],
+  useEffect(() => {
+    if (jobs?.jdList?.length) {
+      setFilterOptions(getFilterOptions(jobs.jdList));
+      setFilteredJobs(jobs.jdList);
+    }
+  }, [jobs]);
+  {
+    console.log(jobs.jdList);
+  }
+  const handleFilterChange = (name, value) => {
+    let filtered;
+    switch (name) {
+      case "role":
+        filtered = jobs.jdList.filter((job) => job.jobRole === value);
+        break;
+      case "locations":
+        filtered = jobs.jdList.filter((job) => job.location === value);
+        break;
+      case "techStacks":
+        filtered = jobs.jdList.filter((job) => job.techStack.includes(value));
+        break;
+      default:
+        filtered = jobs.jdList;
+        break;
+    }
+
+    setFilteredJobs(filtered);
+    console.log(filtered, "jobs filtered by " + name);
   };
 
   const Dropdown = ({ label, items }) => (
     <Grid item xs={12} sm={6} md>
       <FormControl fullWidth size="small">
         <InputLabel>{label}</InputLabel>
-        <Select defaultValue="" label={label}>
-          {items.map((item, index) => (
+        <Select
+          label={label}
+          onChange={(e) =>
+            handleFilterChange(label.toLowerCase(), e.target.value)
+          }
+          defaultValue=""
+        >
+          {items?.map((item, index) => (
             <MenuItem key={index} value={item}>
               {item}
             </MenuItem>
@@ -51,12 +83,9 @@ const FilterBar = () => {
       alignItems="center"
       sx={{ padding: "16px", margin: "auto", maxWidth: 1280 }}
     >
-      <Dropdown label="Company" items={options.companies} />
-      <Dropdown label="Location" items={options.locations} />
-      <Dropdown label="Tech Stack" items={options.techStacks} />
-      <Dropdown label="Role" items={options.roles} />
-      <Dropdown label="Experience" items={options.experienceLevels} />
-      <Dropdown label="Type" items={options.employmentTypes} />
+      <Dropdown label="Role" items={filterOptions.role} />
+      <Dropdown label="Location" items={filterOptions.locations} />
+      <Dropdown label="Tech Stack" items={filterOptions.techStacks} />
       <Grid item xs={12} sm={6} md>
         <TextField
           fullWidth
