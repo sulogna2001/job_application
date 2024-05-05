@@ -12,13 +12,15 @@ import {
   InputLabel,
   Select,
 } from "@mui/material";
-const FilterBar = () => {
+const FilterBar = ({ onFilterChange }) => {
   const dispatch = useDispatch();
-  const { jobs, loading, error } = useSelector((state) => state.jobs);
+  const { jobs } = useSelector((state) => state.jobs);
+  const [companyName, setCompanyName] = useState("");
   const [filterOptions, setFilterOptions] = useState({
     role: [],
     locations: [],
-    techStacks: [],
+    minExp: [],
+    minJdSalary: [],
   });
 
   const [filteredJobs, setFilteredJobs] = useState([]);
@@ -32,30 +34,54 @@ const FilterBar = () => {
       setFilteredJobs(jobs.jdList);
     }
   }, [jobs]);
-  {
-    console.log(jobs.jdList);
-  }
+  const filterJobs = () => {
+    let filtered = jobs.jdList;
+    if (companyName) {
+      filtered = filtered.filter((job) =>
+        job.companyName.toLowerCase().includes(companyName.toLowerCase())
+      );
+    }
+    onFilterChange(filtered);
+  };
   const handleFilterChange = (name, value) => {
     let filtered;
     switch (name) {
       case "role":
         filtered = jobs.jdList.filter((job) => job.jobRole === value);
         break;
-      case "locations":
+      case "location":
         filtered = jobs.jdList.filter((job) => job.location === value);
         break;
-      case "techStacks":
-        filtered = jobs.jdList.filter((job) => job.techStack.includes(value));
+      case "jobForm":
+        if (value === "remote") {
+          // Filter jobs that are explicitly marked as remote
+          filtered = jobs.jdList.filter(
+            (job) => job.location.toLowerCase() === "remote"
+          );
+        } else {
+          // Filter jobs that are not marked as remote
+          filtered = jobs.jdList.filter(
+            (job) => job.location.toLowerCase() !== "remote"
+          );
+        }
+        break;
+      case "minExp":
+        filtered = jobs.jdList.filter((job) => job.minExp >= value);
+        break;
+      case "minJdSalary":
+        filtered = jobs.jdList.filter((job) => job?.minJdSalary >= value);
         break;
       default:
         filtered = jobs.jdList;
         break;
     }
-
-    setFilteredJobs(filtered);
+    onFilterChange(filtered);
     console.log(filtered, "jobs filtered by " + name);
   };
-
+  const handleCompanyNameChange = (event) => {
+    setCompanyName(event.target.value);
+    filterJobs();
+  };
   const Dropdown = ({ label, items }) => (
     <Grid item xs={12} sm={6} md>
       <FormControl fullWidth size="small">
@@ -85,13 +111,17 @@ const FilterBar = () => {
     >
       <Dropdown label="Role" items={filterOptions.role} />
       <Dropdown label="Location" items={filterOptions.locations} />
-      <Dropdown label="Tech Stack" items={filterOptions.techStacks} />
+      <Dropdown label="Remote" items={["Remote", "In Office"]} />
+      <Dropdown label="Min Exp" items={filterOptions.minExp} />
+      <Dropdown label="Min Pay" items={filterOptions?.minJdSalary} />
       <Grid item xs={12} sm={6} md>
         <TextField
           fullWidth
-          label="Search Jobs"
+          label="Search company name"
           variant="outlined"
           size="small"
+          value={companyName}
+          onChange={handleCompanyNameChange}
         />
       </Grid>
     </Grid>
